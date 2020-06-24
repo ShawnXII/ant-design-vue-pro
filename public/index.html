@@ -11,6 +11,7 @@
     <% for (var i in htmlWebpackPlugin.options.cdn && htmlWebpackPlugin.options.cdn.css) { %>
     <link rel="stylesheet" href="<%= htmlWebpackPlugin.options.cdn.css[i] %>" />
     <% } %>
+    <script src="https://ssl.captcha.qq.com/TCaptcha.js"></script>
   </head>
   <body>
     <noscript>

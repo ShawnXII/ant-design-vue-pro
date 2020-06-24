@@ -32,6 +32,7 @@ import {
   Tooltip,
   Alert,
   Tag,
+  FormModel,
   Divider,
   DatePicker,
   TimePicker,
@@ -70,6 +71,7 @@ Vue.use(Form)
 Vue.use(Row)
 Vue.use(Col)
 Vue.use(Modal)
+Vue.use(FormModel)
 Vue.use(Table)
 Vue.use(Tabs)
 Vue.use(Icon)
