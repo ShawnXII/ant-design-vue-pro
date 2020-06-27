@@ -56,6 +56,85 @@ request.interceptors.request.use(config => {
 request.interceptors.response.use((response) => {
   return response.data
 }, errorHandler)
+/**
+ * 新增
+ * @param {*} config
+ * @param {*} option
+ */
+const add = function (config, option) {
+  var s = Object.assign({ method: 'POST' }, config, { data: option })
+  return request(s)
+}
+/**
+ * 请求封装
+ * @param {*} c
+ * @param {*} params
+ */
+const ask = function (c, params) {
+  var o = Object.assign({}, c, { data: params })
+  var { method = 'get', headers = {}, filter = true, fields = [] } = o
+  if (method.toLowerCase() !== 'get' && filter && Array.isArray(fields) && fields.length > 0) {
+    var fd = o.data
+    if (typeof fd === 'undefined' || fd === null) {
+      fd = o.params
+    }
+    if (typeof fd === 'object') {
+      var filterData = {}
+      fields.forEach(key => {
+        if (fd.hasOwnProperty(key)) {
+          filterData[key] = fd[key]
+        }
+      })
+      o.data = filterData
+    }
+  }
+  if (method.toLowerCase() === 'get') {
+    o.params = o.data
+    delete o.data
+  } else {
+    if (headers.hasOwnProperty('Content-Type')) {
+      var ct = headers['Content-Type']
+      if (ct.indexOf('multipart/form-data') !== -1) {
+        var formData = new FormData()
+        var pd = o.data
+        if (typeof pd === 'object') {
+          Object.keys(pd).forEach(key => {
+            var obj = pd[key]
+            if (Array.isArray(obj)) {
+              obj.forEach((o, j) => {
+                if (typeof o === 'object') {
+                  Object.keys(o).forEach(k => {
+                    formData.append(key + '[' + j + '][' + k + ']', o[k])
+                  })
+                } else {
+                  formData.append(key + '[' + j + ']', o)
+                }
+              })
+            } else {
+              formData.append(key, obj)
+            }
+          })
+        }
+        o.data = formData
+      }
+    } else {
+      headers['Content-Type'] = 'application/json;charset=UTF-8'
+      o.headers = headers
+      // o.data = qs.stringify(o.data)
+      var paramsSerializer = o.paramsSerializer
+      if (typeof paramsSerializer === 'function') {
+        var s = paramsSerializer(o.data)
+        if (typeof s !== 'undefined' && s !== null) {
+          o.data = s
+        }
+      }
+      if (typeof o.data !== 'object') {
+        o.headers['Content-Type'] = 'application/x-www-form-urlencoded;charset=UTF-8'
+      }
+    }
+  }
+  return request(o)
+}
 
 const installer = {
   vm: {},
@@ -68,5 +147,7 @@ export default request
 
 export {
   installer as VueAxios,
-  request as axios
+  request as axios,
+  ask,
+  add
 }

@@ -1,32 +1,62 @@
 <template>
   <div class="main">
-    <a-form-model :model="model" ref="loginForm" class="user-layout-login" :rules="rules">
+    <a-form-model
+      :model="model"
+      ref="loginForm"
+      autocomplete="off"
+      class="user-layout-login"
+      :rules="rules">
       <!---->
       <a-tabs :activeKey="model.customActiveKey" :tabBarStyle="{ textAlign: 'center', borderBottom: 'unset' }" @change="handleTabClick">
         <a-tab-pane key="username" tab="账号密码登录">
           <!--用户名-->
+          <a-alert
+            v-if="config.error"
+            type="error"
+            :message="config.errorMessage"
+            banner
+            closable
+            style="margin-bottom: 5px;"/>
           <a-form-model-item prop="username">
-            <a-input :size="config.size" type="text" placeholder="用户名/邮箱" v-model="model.username">
+            <a-input
+              :size="config.size"
+              autocomplete="off"
+              type="text"
+              placeholder="用户名/邮箱"
+              v-model="model.username">
               <a-icon slot="prefix" type="user" :style="{ color: 'rgba(0,0,0,.25)' }"/>
             </a-input>
           </a-form-model-item>
           <!--密码-->
           <a-form-model-item prop="password">
-            <a-input-password :size="config.size" placeholder="密码" v-model="model.password" >
+            <a-input-password
+              autocomplete="off"
+              :size="config.size"
+              placeholder="密码"
+              v-model="model.password" >
               <a-icon slot="prefix" type="lock" :style="{ color: 'rgba(0,0,0,.25)' }"/>
             </a-input-password>
           </a-form-model-item>
         </a-tab-pane>
         <a-tab-pane key="mobile" tab="手机号登录">
           <a-form-model-item prop="mobile">
-            <a-input :size="config.size" v-model="model.mobile" type="text" placeholder="手机号" >
+            <a-input
+              :size="config.size"
+              autocomplete="off"
+              v-model="model.mobile"
+              type="text"
+              placeholder="手机号" >
               <a-icon slot="prefix" type="mobile" :style="{ color: 'rgba(0,0,0,.25)' }"/>
             </a-input>
           </a-form-model-item>
           <a-row :gutter="16">
             <a-col class="gutter-row" :span="16">
               <a-form-item>
-                <a-input :size="config.size" type="text" placeholder="验证码" >
+                <a-input
+                  :size="config.size"
+                  autocomplete="off"
+                  type="text"
+                  placeholder="验证码" >
                   <a-icon slot="prefix" type="mail" :style="{ color: 'rgba(0,0,0,.25)' }"/>
                 </a-input>
               </a-form-item>
@@ -56,7 +86,6 @@
         <a-button
           :size="config.size"
           type="primary"
-          htmlType="submit"
           class="login-button"
           @click="handleSubmit"
           :loading="config.loginBtn"
@@ -123,10 +152,11 @@ export default {
         customActiveKey: 'username'
       },
       config: {
+        error: false,
+        errorMessage: '',
         size: 'large',
         time: 60,
         loginBtn: false,
-
         loginType: 0,
         smsSendBtn: false
       },
@@ -161,8 +191,12 @@ export default {
       if (regex.test(value)) {
         model.loginType = 0
       } else {
-        const mobilRegex = /^1[34578]\d{9}$/
-        model.loginType = mobilRegex.test(value) ? 1 : 2
+        if (value.length !== 11) {
+          model.loginType = 1
+        } else {
+          const myreg = /^(((13[0-9]{1})|(14[0-9]{1})|(17[0-9]{1})|(15[0-3]{1})|(15[4-9]{1})|(18[0-9]{1})|(199))+\d{8})$/
+          model.loginType = myreg.test(value) ? 2 : 1
+        }
       }
       callback()
     },
@@ -171,7 +205,10 @@ export default {
       this.$refs.loginForm.resetFields()
     },
     handleSubmit (e) {
-      login(this.$refs.loginForm, this.model)
+      e.preventDefault()
+      login(this.$refs.loginForm, this.model, this.config, () => {
+
+      })
       // e.preventDefault()
       // const {
       //   form: { validateFields },
