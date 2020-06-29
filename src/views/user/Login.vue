@@ -4,6 +4,7 @@
       :model="model"
       ref="loginForm"
       autocomplete="off"
+      @validate="validate"
       class="user-layout-login"
       :rules="rules">
       <!---->
@@ -17,7 +18,11 @@
             banner
             closable
             style="margin-bottom: 5px;"/>
-          <a-form-model-item prop="username">
+          <a-form-model-item
+            hasFeedback
+            :validateStatus="config.valida.username.status"
+            :extra="config.valida.username.extra"
+            prop="username">
             <a-input
               :size="config.size"
               autocomplete="off"
@@ -28,7 +33,10 @@
             </a-input>
           </a-form-model-item>
           <!--密码-->
-          <a-form-model-item prop="password">
+          <a-form-model-item
+            :validateStatus="config.valida.password.status"
+            :extra="config.valida.password.extra"
+            prop="password">
             <a-input-password
               autocomplete="off"
               :size="config.size"
@@ -39,7 +47,10 @@
           </a-form-model-item>
         </a-tab-pane>
         <a-tab-pane key="mobile" tab="手机号登录">
-          <a-form-model-item prop="mobile">
+          <a-form-model-item
+            :validateStatus="config.valida.mobile.status"
+            :extra="config.valida.mobile.extra"
+            prop="mobile">
             <a-input
               :size="config.size"
               autocomplete="off"
@@ -51,9 +62,13 @@
           </a-form-model-item>
           <a-row :gutter="16">
             <a-col class="gutter-row" :span="16">
-              <a-form-item>
+              <a-form-item
+                :validateStatus="config.valida.mobile.status"
+                :extra="config.valida.mobile.extra"
+                prop="captcha">
                 <a-input
                   :size="config.size"
+                  v-model="model.captcha"
                   autocomplete="off"
                   type="text"
                   placeholder="验证码" >
@@ -105,34 +120,21 @@
         <router-link class="register" :to="{ name: 'register' }">注册账户</router-link>
       </div>
     </a-form-model>
-
-    <two-step-captcha
-      v-if="requiredTwoStepCaptcha"
-      :visible="stepCaptchaVisible"
-      @success="stepCaptchaSuccess"
-      @cancel="stepCaptchaCancel"
-    ></two-step-captcha>
   </div>
 </template>
 
 <script>
 
-import TwoStepCaptcha from '@/components/tools/TwoStepCaptcha'
 import { mapActions } from 'vuex'
 import { timeFix } from '@/utils/util'
-import { getSmsCaptcha, get2step } from '@/api/login'
+import { getSmsCaptcha } from '@/api/login'
 
-import { login } from './src/login.js'
+import { login, reset } from './src/login.js'
 
 export default {
-  components: {
-    TwoStepCaptcha
-  },
   data () {
     return {
-      loginBtn: false,
       // login type: 0 email, 1 username, 2 telephone
-      isLoginError: false,
       requiredTwoStepCaptcha: false,
       stepCaptchaVisible: false,
       rules: {
@@ -158,7 +160,26 @@ export default {
         time: 60,
         loginBtn: false,
         loginType: 0,
-        smsSendBtn: false
+        smsSendBtn: false,
+        setInterval: null,
+        valida: {
+          username: {
+            status: '',
+            extra: ''
+          },
+          password: {
+            status: '',
+            extra: ''
+          },
+          mobile: {
+            status: '',
+            extra: ''
+          },
+          captcha: {
+            status: '',
+            extra: ''
+          }
+        }
       },
       state: {
         time: 60,
@@ -170,20 +191,29 @@ export default {
     }
   },
   created () {
-    get2step({ })
-      .then(res => {
-        this.requiredTwoStepCaptcha = res.result.stepCode
-      })
-      .catch(() => {
-        this.requiredTwoStepCaptcha = false
-      })
+    // get2step({ })
+    //   .then(res => {
+    //     this.requiredTwoStepCaptcha = res.result.stepCode
+    //   })
+    //   .catch(() => {
+    //     this.requiredTwoStepCaptcha = false
+    //   })
     // this.requiredTwoStepCaptcha = true
   },
   mounted () {
 
   },
+  beforeDestroy () {
+    if (this.config.setInterval !== null) {
+      clearInterval(this.config.setInterval)
+      this.config.setInterval = null
+    }
+  },
   methods: {
     ...mapActions(['Login', 'Logout']),
+    validate () {
+      reset(this.config)
+    },
     // 判断用户名是否是手机号码 或者 邮箱 或者用户名
     handleUsernameOrEmail (rule, value, callback) {
       const { model } = this

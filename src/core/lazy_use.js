@@ -55,8 +55,11 @@ import Dialog from '@/components/Dialog'
 import MultiTab from '@/components/MultiTab'
 import PageLoading from '@/components/PageLoading'
 import PermissionHelper from '@/utils/helper/permission'
+import { TableSearchForm, TableSearch } from '@/components/SearchTable/index.js'
 import './directives/action'
 
+Vue.use(TableSearchForm)
+Vue.use(TableSearch)
 Vue.use(ConfigProvider)
 Vue.use(Layout)
 Vue.use(Input)

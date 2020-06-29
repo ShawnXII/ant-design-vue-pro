@@ -129,6 +129,18 @@ export default {
       }))
       this.loadData()
     },
+    getTableData (parameter) {
+      return new Promise((resolve, reject) => {
+        var { data } = this
+        if (Array.isArray(data)) {
+
+        } else if (typeof data === 'object') {
+
+        } else if (typeof data === 'function') {
+
+        }
+      })
+    },
     /**
      * 加载数据方法
      * @param {Object} pagination 分页选项器
