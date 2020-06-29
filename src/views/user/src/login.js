@@ -49,7 +49,6 @@ export function login (form, model, config, errorCallback) {
             params.captcha = captcha
         }
         ask(urls.login, params).then(res => {
-            config.loginBtn = false
             var { success } = res
             if (!success) {
                 handlerLoginError(res, config, form, errorCallback)
@@ -60,6 +59,12 @@ export function login (form, model, config, errorCallback) {
             store.dispatch('Login', token).then(() => {
                 // 跳转至主页
             })
+        }).catch(err => {
+            if (typeof err !== 'undefined') {
+                handlerLoginError({ code: '1007', message: '系统异常!' }, config, form, errorCallback)
+            }
+        }).finally(() => {
+            config.loginBtn = false
         })
     })
 }
@@ -136,6 +141,7 @@ const handlerLoginError = (res, config, form, errorCallback) => {
              //  其他错误
              config.error = true
              config.errorMessage = res.message || '未知错误'
+             resetForm(form)
              break
     }
 }
