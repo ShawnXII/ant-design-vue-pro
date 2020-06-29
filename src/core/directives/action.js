@@ -25,7 +25,7 @@ const action = Vue.directive('action', {
         return
       }
       if (p.actionList && !p.actionList.includes(actionName)) {
-        el.parentNode && el.parentNode.removeChild(el) || (el.style.display = 'none')
+        // el.parentNode && el.parentNode.removeChild(el) || (el.style.display = 'none')
       }
     })
   }

@@ -1,7 +1,7 @@
-import storage from 'store'
-import { login, getInfo, logout } from '@/api/login'
-import { ACCESS_TOKEN } from '@/store/mutation-types'
-import { welcome } from '@/utils/util'
+import { getInfo, logout } from '@/api/login'
+import { welcome, setToken, removeToken } from '@/utils/util'
+import { ask } from '@/utils/request'
+import urls from '@/api/urls.js'
 
 const user = {
   state: {
@@ -34,15 +34,14 @@ const user = {
 
   actions: {
     // 登录
-    Login ({ commit }, userInfo) {
+    Login ({ commit }, token) {
       return new Promise((resolve, reject) => {
-        login(userInfo).then(response => {
-          const result = response.result
-          storage.set(ACCESS_TOKEN, result.token, 7 * 24 * 60 * 60 * 1000)
-          commit('SET_TOKEN', result.token)
-          resolve()
-        }).catch(error => {
-          reject(error)
+        commit('SET_TOKEN', token)
+        setToken(token)
+        // 获取用户信息
+        ask(urls.getUserInfo).then(res => {
+          console.log(res, 'userinfo')
+          resolve(res)
         })
       })
     },
@@ -89,7 +88,7 @@ const user = {
         }).finally(() => {
           commit('SET_TOKEN', '')
           commit('SET_ROLES', [])
-          storage.remove(ACCESS_TOKEN)
+          removeToken()
         })
       })
     }

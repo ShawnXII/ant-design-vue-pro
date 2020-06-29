@@ -260,8 +260,22 @@ export const asyncRouterMap = [
             ]
           }
         ]
+      },
+      {
+        path: '/system',
+        name: 'system',
+        component: RouteView,
+        meta: { title: '系统管理', icon: 'slack', permission: [ 'dashboard' ] },
+        redirect: '/system/strategy',
+        children: [
+          {
+            path: '/system/strategy',
+            name: 'systemStrategy',
+            component: () => import('@/views/system/strategy/index.vue'),
+            meta: { title: '策略组管理', icon: 'tool', keepAlive: true, permission: [ 'dashboard' ] }
+          }
+        ]
       }
-
       // other
       /*
       {

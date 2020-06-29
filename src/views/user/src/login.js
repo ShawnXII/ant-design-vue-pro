@@ -1,17 +1,20 @@
 import md5 from 'md5'
 import { ask } from '@/utils/request'
-import qs from 'qs'
-/**
- * 用户登录URL
- */
-const LOGIN_URL = '/api/shop/doLogin.do'
+import { secondToDate } from '@/utils/util'
 
-export function init (config) {
+import urls from '@/api/urls.js'
+
+import store from '@/store'
+
+export function reset (config) {
+    if (config.setInterval !== null) {
+        clearInterval(config.setInterval)
+        config.setInterval = null
+    }
     config.error = false
     config.errorMessage = ''
     Object.keys(config.valida).forEach(key => {
         config.valida[key].status = ''
-        config.valida[key].hasFeed = false
         config.valida[key].extra = ''
     })
 }
@@ -21,7 +24,7 @@ export function init (config) {
  * @param {*} config
  */
 export function login (form, model, config, errorCallback) {
-     init(config)
+    reset(config)
      form.validate(valid => {
         if (!valid) {
             return
@@ -33,13 +36,6 @@ export function login (form, model, config, errorCallback) {
                 config.loginBtn = false
             }
         }, 3000)
-        var urls = {
-            url: LOGIN_URL,
-            method: 'POST',
-            paramsSerializer (v) {
-                return qs.stringify(v)
-            }
-        }
         var params = { rememberMe: rememberMe }
         if (customActiveKey === 'username') {
             // 账号密码登录
@@ -52,112 +48,94 @@ export function login (form, model, config, errorCallback) {
             params.loginType = 3
             params.captcha = captcha
         }
-        ask(urls, params).then(res => {
+        ask(urls.login, params).then(res => {
             config.loginBtn = false
-            var { success = false } = res
+            var { success } = res
             if (!success) {
-                handlerLoginError(res, config, model, form, errorCallback)
+                handlerLoginError(res, config, form, errorCallback)
                 return
             }
-            // 登录成功 存储token
-            console.log(res)
-        }).then(e => {
-            config.loginBtn = false
-            handlerLoginError({ code: '1007', message: '系统异常' }, config, model, form, errorCallback)
+            // 登录成功
+            var token = res.data.token
+            store.dispatch('Login', token).then(() => {
+                // 跳转至主页
+            })
         })
     })
 }
-const clearModel = (form) => {
+
+const resetForm = (form) => {
     form.resetFields()
 }
 /**
  * 登录错误处理
  */
-const handlerLoginError = (res, config, model, form, errorCallback) => {
-    var { code } = res
-    var flag = true
-    var message = res.message || '未知错误'
+const handlerLoginError = (res, config, form, errorCallback) => {
+    var { code, time } = res
     switch (code) {
-        case '1001':
-            //  未知错误！
-            config.error = flag
-            config.errorMessage = message
-            break
-        case '1002':
-            //  InternalAuthenticationServiceException
-            message = '该计算机无法登录此系统！'
-            config.error = flag
-            config.errorMessage = message
-            break
-        case '1003':
-            //  账号被锁定
-            message = '帐号被锁定'
-            config.error = flag
-            config.errorMessage = message
-            break
-        case '1004':
-             //  未知错误
-             message = '系统异常'
-             config.error = flag
-             config.errorMessage = message
-             break
-        case '1005':
-             //  账号被禁用
-             message = '帐号被禁用'
-             config.error = flag
-             config.errorMessage = message
-             break
         case '1006':
              //  账号被锁定
             //  密码过期（也会登录成功 但是登录后 会需要重新设置密码！）
-             message = '密码已经过期'
              break
         case '1101':
+             // 验证码不能为空
              config.valida.captcha.status = 'error'
-             config.valida.captcha.hasFeed = true
-             config.valida.captcha.extra = res.message || '验证码不能为空'
+             config.valida.captcha.extra = '验证码不能为空'
+             resetForm(form)
              break
         case '1102':
              //  验证码错误
              config.valida.captcha.status = 'error'
-             config.valida.captcha.hasFeed = true
-             config.valida.captcha.extra = res.message || '验证码错误'
+             config.valida.captcha.extra = '验证码错误'
              break
         case '1103':
              //  用户名不能为空
              config.valida.username.status = 'error'
-             config.valida.username.hasFeed = true
-             config.valida.username.extra = res.message || ' 用户名不能为空'
+             config.valida.username.extra = '用户名不能为空'
+             resetForm(form)
              break
         case '1104':
              //  密码不能为空
              config.valida.password.status = 'error'
-             config.valida.password.hasFeed = true
-             config.valida.password.extra = res.message || ' 密码不能为空'
+             config.valida.password.extra = '密码不能为空'
+             resetForm(form)
              break
         case '1105':
              //  用户名不存在
              config.valida.username.status = 'error'
-             config.valida.username.hasFeed = true
-             config.valida.username.extra = res.message || ' 用户名不存在'
-             clearModel(form)
+             config.valida.username.extra = '用户名或者密码错误'
+             resetForm(form)
              break
         case '1106':
              //  密码错误
              config.valida.username.status = 'error'
-             config.valida.username.hasFeed = true
-             config.valida.username.extra = res.message || ' 密码错误'
-             clearModel(form)
+             config.valida.username.extra = '用户名或者密码错误'
+             resetForm(form)
              break
         case '1107':
              //  账号(email)未激活！
              break
         case '1108':
+            config.error = true
+            var t = secondToDate(time)
+            config.setInterval = setInterval(() => {
+                time--
+                if (time <= 0) {
+                    clearInterval(config.setInterval)
+                    config.setInterval = null
+                    config.error = false
+                    config.errorMessage = ''
+                    return
+                }
+                var t1 = secondToDate(time)
+                config.errorMessage = '账号被锁定,还剩' + t1 + '解锁'
+            }, 1000)
+            config.errorMessage = '账号被锁定,还剩' + t + '解锁'
             break
         default:
              //  其他错误
-             config.error = flag
-             config.errorMessage = message
+             config.error = true
+             config.errorMessage = res.message || '未知错误'
              break
     }
 }
