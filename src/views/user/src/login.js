@@ -5,12 +5,23 @@ import qs from 'qs'
  * 用户登录URL
  */
 const LOGIN_URL = '/api/shop/doLogin.do'
+
+export function init (config) {
+    config.error = false
+    config.errorMessage = ''
+    Object.keys(config.valida).forEach(key => {
+        config.valida[key].status = ''
+        config.valida[key].hasFeed = false
+        config.valida[key].extra = ''
+    })
+}
 /**
  * 登录
  * @param {*} form
  * @param {*} config
  */
 export function login (form, model, config, errorCallback) {
+     init(config)
      form.validate(valid => {
         if (!valid) {
             return
@@ -30,7 +41,7 @@ export function login (form, model, config, errorCallback) {
             }
         }
         var params = { rememberMe: rememberMe }
-        if (customActiveKey !== 'username') {
+        if (customActiveKey === 'username') {
             // 账号密码登录
             Object.assign(params, { username: username, loginType: loginType })
             params.password = md5(password)
@@ -42,41 +53,59 @@ export function login (form, model, config, errorCallback) {
             params.captcha = captcha
         }
         ask(urls, params).then(res => {
-            var { success } = res
+            config.loginBtn = false
+            var { success = false } = res
             if (!success) {
-                handlerLoginError(res, config, errorCallback)
+                handlerLoginError(res, config, model, form, errorCallback)
+                return
             }
+            // 登录成功 存储token
+            console.log(res)
         }).then(e => {
-            console.log(e)
+            config.loginBtn = false
+            handlerLoginError({ code: '1007', message: '系统异常' }, config, model, form, errorCallback)
         })
     })
+}
+const clearModel = (form) => {
+    form.resetFields()
 }
 /**
  * 登录错误处理
  */
-const handlerLoginError = (res, config, errorCallback) => {
+const handlerLoginError = (res, config, model, form, errorCallback) => {
     var { code } = res
     var flag = true
     var message = res.message || '未知错误'
     switch (code) {
         case '1001':
             //  未知错误！
+            config.error = flag
+            config.errorMessage = message
             break
         case '1002':
             //  InternalAuthenticationServiceException
             message = '该计算机无法登录此系统！'
+            config.error = flag
+            config.errorMessage = message
             break
         case '1003':
             //  账号被锁定
             message = '帐号被锁定'
+            config.error = flag
+            config.errorMessage = message
             break
         case '1004':
              //  未知错误
              message = '系统异常'
+             config.error = flag
+             config.errorMessage = message
              break
         case '1005':
              //  账号被禁用
              message = '帐号被禁用'
+             config.error = flag
+             config.errorMessage = message
              break
         case '1006':
              //  账号被锁定
@@ -84,31 +113,51 @@ const handlerLoginError = (res, config, errorCallback) => {
              message = '密码已经过期'
              break
         case '1101':
-             message = '验证码不能为空'
+             config.valida.captcha.status = 'error'
+             config.valida.captcha.hasFeed = true
+             config.valida.captcha.extra = res.message || '验证码不能为空'
              break
         case '1102':
              //  验证码错误
-
+             config.valida.captcha.status = 'error'
+             config.valida.captcha.hasFeed = true
+             config.valida.captcha.extra = res.message || '验证码错误'
              break
         case '1103':
              //  用户名不能为空
+             config.valida.username.status = 'error'
+             config.valida.username.hasFeed = true
+             config.valida.username.extra = res.message || ' 用户名不能为空'
              break
         case '1104':
              //  密码不能为空
+             config.valida.password.status = 'error'
+             config.valida.password.hasFeed = true
+             config.valida.password.extra = res.message || ' 密码不能为空'
              break
         case '1105':
              //  用户名不存在
+             config.valida.username.status = 'error'
+             config.valida.username.hasFeed = true
+             config.valida.username.extra = res.message || ' 用户名不存在'
+             clearModel(form)
              break
         case '1106':
              //  密码错误
+             config.valida.username.status = 'error'
+             config.valida.username.hasFeed = true
+             config.valida.username.extra = res.message || ' 密码错误'
+             clearModel(form)
              break
         case '1107':
              //  账号(email)未激活！
              break
+        case '1108':
+            break
         default:
              //  其他错误
+             config.error = flag
+             config.errorMessage = message
              break
     }
-    config.error = flag
-    config.errorMessage = message
 }
