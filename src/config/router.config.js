@@ -1,5 +1,5 @@
 // eslint-disable-next-line
-import { UserLayout, BasicLayout, BlankLayout } from '@/layouts'
+import { UserLayout, BasicLayout, BlankLayout} from '@/layouts'
 import { bxAnaalyse } from '@/core/icons'
 
 const RouteView = {
@@ -271,8 +271,110 @@ export const asyncRouterMap = [
           {
             path: '/system/strategy',
             name: 'systemStrategy',
-            component: () => import('@/views/system/strategy/index.vue'),
-            meta: { title: '策略组管理', icon: 'tool', keepAlive: true, permission: [ 'dashboard' ] }
+            redirect: '/system/strategy/page',
+            component: RouteView,
+            hideChildrenInMenu: true,
+            meta: { title: '策略组', icon: 'tool', keepAlive: true, permission: [ 'dashboard' ] },
+            children: [
+              {
+                path: '/system/strategy/page',
+                name: 'systemStrategyPage',
+                component: () => import('@/views/system/strategy/index.vue'),
+                meta: { title: '策略组页面', icon: 'tool', keepAlive: true, permission: [ 'dashboard' ] }
+              },
+              {
+                path: '/system/strategy/add',
+                name: 'systemStrategyAdd',
+                component: () => import('@/views/system/strategy/src/add.vue'),
+                meta: { title: '新增策略', icon: 'tool', keepAlive: true, permission: [ 'dashboard' ] }
+              }
+            ]
+          },
+          {
+            path: '/system/role',
+            name: 'systemRole',
+            component: RouteView,
+            redirect: '/system/role/apge',
+            hideChildrenInMenu: true,
+            meta: { title: '系统角色', icon: 'tool', keepAlive: true, permission: [ 'dashboard' ] },
+            children: [
+              {
+                path: '/system/role/apge',
+                name: 'systemRolePage',
+                component: () => import('@/views/system/role/index.vue'),
+                meta: { title: '角色页面', icon: 'tool', hiddenHeaderContent: true, hidden: true, keepAlive: true, permission: [ 'dashboard' ] }
+              },
+              {
+                path: '/system/role/add',
+                name: 'systemRoleAdd',
+                component: () => import('@/views/system/role/src/add.vue'),
+                meta: { title: '角色页面', icon: 'tool', hiddenHeaderContent: true, hidden: true, keepAlive: true, permission: [ 'dashboard' ] }
+              }
+            ]
+          },
+          // organization 组织
+          {
+            path: '/system/flow',
+            name: 'systemFlow',
+            component: () => import('@/views/system/flow/index.vue'),
+            hideChildrenInMenu: true,
+            meta: { title: '工作流', icon: 'tool', keepAlive: true, permission: [ 'dashboard' ] }
+          },
+          {
+            path: '/system/account',
+            name: 'systemAccount',
+            component: RouteView,
+            redirect: '/system/account/apge',
+            hideChildrenInMenu: true,
+            meta: { title: '系统用户', icon: 'tool', keepAlive: true, permission: [ 'dashboard' ] },
+            children: [
+              {
+                path: '/system/account/apge',
+                name: 'systemAccountPage',
+                component: () => import('@/views/system/account/index.vue'),
+                meta: { title: '系统用户', icon: 'tool', hiddenHeaderContent: true, hidden: true, keepAlive: true, permission: [ 'dashboard' ] }
+              },
+              {
+                path: '/system/account/add',
+                name: 'systemAccountAdd',
+                component: () => import('@/views/system/account/src/add.vue'),
+                meta: { title: '新增系统用户', icon: 'tool', hiddenHeaderContent: true, hidden: true, keepAlive: true, permission: [ 'dashboard' ] }
+              }
+            ]
+          },
+          {
+            path: '/system/resource',
+            name: 'SystemResource',
+            redirect: '/system/resource/page',
+            component: () => import(/* webpackChunkName: "system" */'@/views/system/resource/index.vue'),
+            hideChildrenInMenu: true,
+            meta: { title: '系统资源', keepAlive: true, permission: [{ key: 'sync', label: '同步资源' }, 'edit', 'remove', 'show', 'dashboard'] },
+            children: [
+              {
+                path: '/system/resource/page',
+                name: 'SystemResourcePage',
+                component: () => import(/* webpackChunkName: "system" */'@/views/system/resource/page/resource.vue'),
+                meta: { title: '页面资源', hiddenHeaderContent: true, keepAlive: true, hidden: true, permission: [{ key: 'sync', label: '同步资源' }, 'edit', 'show', 'dashboard'] }
+              },
+              {
+                path: '/system/resource/interface',
+                name: 'SystemResourceInterface',
+                component: () => import(/* webpackChunkName: "system" */'@/views/system/resource/page/interface.vue'),
+                meta: { title: '接口资源', hiddenHeaderContent: true, keepAlive: true, hidden: true, permission: [{ key: 'sync', label: '同步资源' }, 'edit', 'show', 'dashboard'] }
+              },
+              {
+                path: '/system/resource/page/show',
+                name: 'SystemResourcePageShow',
+                component: () => import(/* webpackChunkName: "system" */'@/views/system/resource/page/showResource.vue'),
+                meta: { title: '查看页面资源', hiddenHeaderContent: true, keepAlive: true, hidden: true, permission: [{ key: 'sync', label: '同步资源' }, 'edit', 'show', 'dashboard'] }
+              },
+              {
+                path: '/system/resource/page/edit',
+                name: 'SystemResourcePageEdit',
+                component: () => import(/* webpackChunkName: "system" */'@/views/system/resource/page/editResource.vue'),
+                meta: { title: '修改页面资源', hiddenHeaderContent: true, keepAlive: true, hidden: true, permission: [{ key: 'sync', label: '同步资源' }, 'edit', 'show', 'dashboard'] }
+              }
+            ]
           }
         ]
       }

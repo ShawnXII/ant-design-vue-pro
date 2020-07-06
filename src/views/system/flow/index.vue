@@ -1,0 +1,16 @@
+<template>
+  <vue-bpmn />
+</template>
+
+<script>
+import VueBpmn from '@/components/VueBpmn'
+export default {
+   components: {
+    VueBpmn
+  }
+}
+</script>
+
+<style>
+
+</style>

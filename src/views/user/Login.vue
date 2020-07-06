@@ -234,8 +234,8 @@ export default {
     },
     handleSubmit (e) {
       e.preventDefault()
-      login(this.$refs.loginForm, this.model, this.config, () => {
-
+      login(this.$refs.loginForm, this.model, this.config, (token) => {
+        this.$router.push({ path: '/' })
       })
       // e.preventDefault()
       // const {

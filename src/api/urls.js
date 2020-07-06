@@ -17,6 +17,33 @@ const URLS = {
     sendactivate: {
         url: '/api/shop/sendactivate.do',
         method: 'POST'
+    },
+    resource: {
+        prefix: '/api/page/resource',
+        sync: {
+            url: '/api/page/resource/sync.do',
+            method: 'POST'
+        }
+    },
+    interfaceResource: {
+        prefix: '/api/resource',
+        sync: {
+            url: '/api/resource/sync.do',
+            method: 'POST'
+        }
+    },
+    role: {
+        prefix: '/api/role',
+        check: {
+            url: '/api/role/check.do',
+            method: 'POST'
+        }
+    },
+    account: {
+        prefix: '/api/account'
+    },
+    log: {
+        prefix: '/api/log'
     }
 }
 

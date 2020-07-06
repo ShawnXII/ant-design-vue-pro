@@ -23,7 +23,7 @@ export function reset (config) {
  * @param {*} form
  * @param {*} config
  */
-export function login (form, model, config, errorCallback) {
+export function login (form, model, config, callback) {
     reset(config)
      form.validate(valid => {
         if (!valid) {
@@ -51,17 +51,20 @@ export function login (form, model, config, errorCallback) {
         ask(urls.login, params).then(res => {
             var { success } = res
             if (!success) {
-                handlerLoginError(res, config, form, errorCallback)
+                handlerLoginError(res, config, form)
                 return
             }
             // 登录成功
             var token = res.data.token
             store.dispatch('Login', token).then(() => {
                 // 跳转至主页
+                if (typeof callback === 'function') {
+                    callback(token)
+                }
             })
         }).catch(err => {
             if (typeof err !== 'undefined') {
-                handlerLoginError({ code: '1007', message: '系统异常!' }, config, form, errorCallback)
+                handlerLoginError({ code: '1007', message: '系统异常!' }, config, form)
             }
         }).finally(() => {
             config.loginBtn = false
@@ -75,7 +78,7 @@ const resetForm = (form) => {
 /**
  * 登录错误处理
  */
-const handlerLoginError = (res, config, form, errorCallback) => {
+const handlerLoginError = (res, config, form) => {
     var { code, time } = res
     switch (code) {
         case '1006':

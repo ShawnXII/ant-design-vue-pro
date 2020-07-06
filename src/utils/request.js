@@ -61,10 +61,64 @@ request.interceptors.response.use((response) => {
  * @param {*} config
  * @param {*} option
  */
-const add = function (config, option) {
-  var s = Object.assign({ method: 'POST' }, config, { data: option })
-  return request(s)
+const add = function (url, option) {
+  var path = url + '/save.do'
+  var c = {
+    url: path,
+    method: 'POST'
+  }
+  return ask(c, option)
 }
+/**
+ * 分页查询
+ * @param {*} url
+ * @param {*} option
+ */
+const page = function (url, option) {
+  var path = url + '/page.do'
+  var c = {
+    url: path,
+    method: 'GET'
+  }
+  console.log(c, option)
+  return ask(c, option)
+}
+/**
+ * 修改
+ * @param {*} url
+ * @param {*} option
+ */
+const update = function (url, option) {
+  var path = url + '/update.do'
+  var c = {
+    url: path,
+    method: 'POST'
+  }
+  return ask(c, option)
+}
+/**
+ * 根据ID查询
+ * @param {*} url
+ * @param {*} option
+ */
+const findById = function (url, option) {
+  var path = url + '/findById.do'
+  var c = {
+    url: path,
+    method: 'GET'
+  }
+  return ask(c, option)
+}
+
+const remove = function (url, option) {
+  var path = url + '/remove.do'
+  var c = {
+    url: path,
+    method: 'POST'
+  }
+  return ask(c, option)
+}
+
 /**
  * 请求封装
  * @param {*} c
@@ -133,6 +187,7 @@ const ask = function (c, params) {
       }
     }
   }
+  console.log(o)
   return request(o)
 }
 
@@ -149,5 +204,9 @@ export {
   installer as VueAxios,
   request as axios,
   ask,
-  add
+  add,
+  page,
+  update,
+  remove,
+  findById
 }

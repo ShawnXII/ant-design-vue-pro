@@ -1,6 +1,6 @@
 <template>
   <a-card>
-    新增策略
+    修改
   </a-card>
 </template>
 

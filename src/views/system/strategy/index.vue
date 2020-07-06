@@ -14,6 +14,7 @@
             type="primary"
             ghost
             icon="plus"
+            @click="add"
             v-action:add>新建自定义策略</a-button>
           <a-button
             type="primary"
@@ -58,6 +59,9 @@ export default {
     methods: {
       search () {
         // 搜索
+      },
+      add () {
+         this.$router.push({ name: 'systemStrategyAdd' })
       }
     }
 }

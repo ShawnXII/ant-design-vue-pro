@@ -3,6 +3,7 @@ import T from 'ant-design-vue/es/table/Table'
 import get from 'lodash.get'
 import emitter from '@/components/_util/emitter'
 import { mapActions } from 'vuex'
+import { times } from '@/utils/util.js'
 export default {
   mixins: [emitter],
   name: 'SearchTable',
@@ -136,7 +137,7 @@ export default {
     transitionDataSource: {
       deep: true,
       handler (v) {
-        // console.log('transitionDataSource', v)
+        console.log('transitionDataSource', this.transitionDataSource)
       }
     }
   },
@@ -171,47 +172,67 @@ export default {
       if (Array.isArray(data) && data.length > 0) {
         var { columns = [], childrenColumnName = 'children' } = this
         var enums = []
+        var timearr = []
         columns.forEach(item => {
-          var { enum: enum1 = '' } = item
+          var { enum: enum1 = '', time } = item
           if (enum1 !== '') {
             this.loadSelect(enum1)
             enums.push(item)
           }
+          if (typeof time !== 'undefined' && time !== null && time !== false) {
+            timearr.push(item)
+          }
         })
-        if (enums.length > 0) {
+        if (enums.length > 0 || timearr.length > 0) {
           data.forEach((item, index) => {
             var nitem = Object.assign({}, item)
-            enums.forEach(e => {
-              var { key, enum: enum1 } = e
-              var obj = item[key]
-              var selectData = this.$store.getters.getSelectData(enum1)
-              if (Array.isArray(selectData) && selectData.length > 0) {
-                if (typeof obj !== 'undefined' && obj !== null) {
-                  if (!Array.isArray(obj)) {
-                    obj = obj + ''
-                    obj = obj.split(',')
+            if (enums.length > 0) {
+               enums.forEach(e => {
+                var { key, enum: enum1 } = e
+                var obj = item[key]
+                var selectData = this.$store.getters.getSelectData(enum1)
+                if (Array.isArray(selectData) && selectData.length > 0) {
+                  if (typeof obj !== 'undefined' && obj !== null) {
+                    if (!Array.isArray(obj)) {
+                      obj = obj + ''
+                      obj = obj.split(',')
+                    }
                   }
-                }
-                var titles = []
-                for (var k in selectData) {
-                  var sd = selectData[k]
-                  var { value, title } = sd
-                  var flag = false
-                  for (var i in obj) {
-                    var o = obj[i]
-                    if (o === value) {
-                      titles.push(title)
-                      flag = true
+                  var titles = []
+                  for (var k in selectData) {
+                    var sd = selectData[k]
+                    var { value, title } = sd
+                    var flag = false
+                    for (var i in obj) {
+                      var o = obj[i]
+                      if (o === value) {
+                        titles.push(title)
+                        flag = true
+                        break
+                      }
+                    }
+                    if (obj.length === 1 && flag) {
                       break
                     }
                   }
-                  if (obj.length === 1 && flag) {
-                    break
-                  }
+                  nitem['_' + key] = titles.join(',')
                 }
-                nitem['_' + key] = titles.join(',')
-              }
-            })
+              })
+            }
+            if (timearr.length > 0) {
+              timearr.forEach(t => {
+                var { key: key1, time } = t
+                var format = 'yyyy-MM-dd HH:mm:ss'
+                if (time !== true) {
+                  format = time
+                }
+                 var obj1 = item[key1]
+                 if (typeof obj1 !== 'undefined' && obj1 !== null) {
+                   nitem[key1] = times(obj1, format)
+                   nitem['_' + key1] = obj1
+                 }
+              })
+            }
             if (nitem.hasOwnProperty(childrenColumnName)) {
               var narr = nitem[childrenColumnName]
               var s = this.transitionData(narr)
@@ -328,7 +349,8 @@ export default {
       // eslint-disable-next-line
       if ((typeof result === 'object' || typeof result === 'function') && typeof result.then === 'function') {
         result.then(res => {
-          if (res.success) {
+          var { success = false } = res
+          if (success) {
             var r = res.data || {}
             this.localPagination = this.showPagination && Object.assign({}, this.localPagination, {
               current: r.pageNum, // 返回结果中的当前分页数
@@ -359,6 +381,7 @@ export default {
             this.localLoading = false
             return
           }
+          this.localLoading = false
           this.$message.error('加载表格数据失败!')
         }).catch(e => {
           this.localLoading = false
@@ -541,6 +564,8 @@ export default {
     }
     if (this.pagination === false) {
       props.pagination = false
+    } else {
+      Object.assign(props.pagination, { hideOnSinglePage: false })
     }
     const table = (
       <a-table {...{ props, scopedSlots: { ...ss } }} onChange={this.loadData} class="search_table">
